@@ -1,6 +1,23 @@
-# Relaxena Backend
+<h1 align="center">Relaxena</h1>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+" />
+  <img src="https://img.shields.io/badge/FastAPI-Async-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Frontend-Next.js%2016-000000?logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white" alt="SQLite" />
+  <img src="https://img.shields.io/badge/Cache%2FPubSub-Redis-DC382D?logo=redis&logoColor=white" alt="Redis" />
+  <img src="https://img.shields.io/badge/Workers-Celery-37814A?logo=celery&logoColor=white" alt="Celery" />
+  <img src="https://img.shields.io/badge/Container-Docker-2496ED?logo=docker&logoColor=white" alt="Docker" />
+</p>
 
 Production-grade backend scaffold for a real-time physical event experience platform for large sporting venues.
+
+## Repository Structure
+
+- Root contains frontend-friendly workspace files and this README.
+- Backend code now lives under `backend/`.
+
+Run all backend setup and runtime commands from inside `backend/`.
 
 ## Stack
 
@@ -64,6 +81,7 @@ scripts/
 1. Create env file:
 
 ```bash
+cd backend
 cp .env.example .env
 ```
 
@@ -92,6 +110,24 @@ celery -A app.core.celery_app.celery_app worker --loglevel=info
 ```bash
 python -m scripts.seed_demo
 ```
+
+6. Run frontend (in a separate terminal):
+
+```bash
+cd ..\frontend
+copy .env.example .env.local
+npm install
+npm run dev
+```
+
+Open http://localhost:3000.
+
+## Dummy Login Credentials
+
+Use these seeded credentials for demo/testing:
+
+- Email: admin@relaxena.com
+- Password: Admin@12345
 
 ## Docker
 

@@ -11,7 +11,8 @@ export function useWebSocket<T>(path: string) {
 
   const connect = useCallback(() => {
     try {
-      ws.current = new WebSocket(`${WS_URL}${path}`);
+      const socketUrl = `${WS_URL}${path}`;
+      ws.current = new WebSocket(socketUrl);
 
       ws.current.onopen = () => {
         setStatus("open");
@@ -19,20 +20,24 @@ export function useWebSocket<T>(path: string) {
       };
 
       ws.current.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        setData(message);
+        try {
+          const message = JSON.parse(event.data) as T;
+          setData(message);
+        } catch {
+          // Ignore heartbeat/plain-text messages like "pong".
+        }
       };
 
       ws.current.onclose = () => {
         setStatus("closed");
-        console.log(`WebSocket disconnected from ${path}`);
+        console.log(`WebSocket disconnected from ${socketUrl}`);
         reconnectTimer.current = window.setTimeout(() => {
           connectRef.current();
         }, 5000);
       };
 
-      ws.current.onerror = (error) => {
-        console.error("WebSocket error:", error);
+      ws.current.onerror = () => {
+        console.warn(`WebSocket error while connecting to ${socketUrl}`);
         ws.current?.close();
       };
     } catch (err) {

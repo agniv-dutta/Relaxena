@@ -20,7 +20,11 @@ async def create_crowd_snapshot(db: AsyncSession, payload: CrowdSnapshotCreate) 
     db.add(snapshot)
     await db.flush()
 
-    redis = await get_redis()
+    redis = None
+    try:
+        redis = await get_redis()
+    except Exception:
+        redis = None
 
     update = {
         "type": "crowd_snapshot",
@@ -29,7 +33,8 @@ async def create_crowd_snapshot(db: AsyncSession, payload: CrowdSnapshotCreate) 
         "density_score": snapshot.density_score,
         "timestamp": snapshot.captured_at.isoformat() if snapshot.captured_at else None,
     }
-    await redis.publish(f"crowd:{snapshot.venue_id}", json.dumps(update))
+    if redis is not None:
+        await redis.publish(f"crowd:{snapshot.venue_id}", json.dumps(update))
     await ws_manager.broadcast(snapshot.venue_id, update)
 
     if snapshot.density_score >= settings.crowd_alert_density_threshold:
@@ -50,7 +55,8 @@ async def create_crowd_snapshot(db: AsyncSession, payload: CrowdSnapshotCreate) 
             severity="high",
             message=alert.message,
         )
-        await redis.publish(f"staff_alerts:{snapshot.venue_id}", alert_payload.model_dump_json())
+        if redis is not None:
+            await redis.publish(f"staff_alerts:{snapshot.venue_id}", alert_payload.model_dump_json())
 
     await db.commit()
     await db.refresh(snapshot)

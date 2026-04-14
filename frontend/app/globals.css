@@ -1,6 +1,5 @@
 @import "tailwindcss";
-
-@plugin "tailwindcss-animate";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -82,10 +81,14 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+    outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    background: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

@@ -1,103 +1,113 @@
-export interface User {
+export type Severity = "low" | "medium" | "high" | "critical";
+export type AlertType = "info" | "warning" | "urgent" | "staff";
+export type QueueCategory = "food" | "rest" | "gates" | "merch";
+
+export interface UserProfile {
   id: number;
   email: string;
   full_name: string;
-  role: string;
-  ticket_id?: number | null;
-  seat_label?: string | null;
+  role: "user" | "staff" | "admin";
+  ticket_id?: number;
+  seat_label?: string;
+  gate?: string;
+  entry_time?: string;
 }
 
 export interface Venue {
-  id: number;
+  id: string;
   name: string;
   city: string;
   capacity: number;
+  image_url?: string;
 }
 
 export interface Zone {
-  id: number;
-  venue_id: number;
+  id: string;
+  venue_id: string;
   name: string;
-}
-
-export interface CrowdSnapshot {
-  id: number;
-  venue_id: number;
-  zone_id: number;
-  density_score: number;
-  captured_at: string;
-}
-
-export interface CrowdHeatmapPoint {
-  zone_id: number;
-  density_score: number;
-  timestamp: string;
-}
-
-export interface Alert {
-  id: number;
-  venue_id: number;
-  zone_id?: number;
-  severity: "low" | "medium" | "high" | "critical";
-  title: string;
-  message: string;
-  created_at: string;
-  type?: "info" | "warning" | "urgent" | "staff";
+  density: number; // 0-100
+  capacity: number;
+  status: "open" | "closed" | "restricted";
 }
 
 export interface QueueEntry {
-  id: number;
-  ticket_id: number;
-  venue_id: number;
-  queue_type: string;
-  resource_id: string;
+  id: string;
+  user_id: number;
+  venue_id: string;
+  category: QueueCategory;
+  location_name: string;
   joined_at: string;
-  position?: number;
-  estimated_wait_minutes?: number;
+  position: number;
+  estimated_wait_minutes: number;
 }
 
-export interface QueueStatus {
-  ticket_id: number;
-  in_queue: boolean;
-  queue_type?: string | null;
-  resource_id?: string | null;
-  position?: number | null;
-  estimated_wait_minutes?: number | null;
-  joined_at?: string | null;
+export interface Alert {
+  id: string;
+  venue_id: string;
+  zone_id?: string;
+  severity: Severity;
+  type: AlertType;
+  title: string;
+  message: string;
+  timestamp: string;
+  is_read: boolean;
 }
 
-export interface DashboardStats {
-  active_incidents: number;
-  critical_alerts_last_hour: number;
-  avg_density: number;
-  active_queue_entries: number;
-}
-
-export interface EventInfo {
-  event_id: number;
-  name: string;
-  start_time: string;
-  end_time: string;
+export interface Incident {
+  id: string;
+  venue_id: string;
+  type: string;
+  severity: Severity;
+  location: string;
+  status: "active" | "resolved";
+  description: string;
+  timestamp: string;
 }
 
 export interface LiveScore {
-  event_id: number;
+  event_id: string;
   home_team: string;
   away_team: string;
   home_score: number;
   away_score: number;
-  status: string;
+  period: string; // e.g., "1st Quarter", "Halftime"
+  time_remaining: string;
+  status: "live" | "scheduled" | "finished";
+  recent_highlights?: string[];
 }
 
-export interface NavigationSuggestion {
-  user_id: number;
-  destination: string;
-  route: string[];
-  estimated_minutes: number;
+export interface WaitTime {
+  location_id: string;
+  name: string;
+  category: QueueCategory;
+  minutes: number;
+  trend: "rising" | "falling" | "stable";
 }
 
-export interface ConcessionSuggestion {
-  venue_id: number;
-  recommended_resource_id: string;
-  estimated_wait_minutes: number;
+export interface AIMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+  actions?: AIAction[];
+}
+
+export interface AIAction {
+  type: "queue_join" | "map_link" | "alert_info";
+  label: string;
+  payload: any;
+}
+
+export interface CrowdSnapshot {
+  venue_id: string;
+  timestamp: string;
+  total_count: number;
+  zone_densities: Record<string, number>;
+}
+
+export interface StaffMember {
+  id: number;
+  name: string;
+  role: string;
+  zone_assignment?: string;
 }

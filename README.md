@@ -8,208 +8,416 @@
   <img src="https://img.shields.io/badge/AI-Groq%20LLM-007AFF?logo=openai&logoColor=white" alt="Groq LLM" />
 </p>
 
-Production-ready real-time venue operations platform with crowd intelligence, queue orchestration, alerting, and AI assistant capabilities.
+Production-ready real-time venue operations platform with crowd intelligence, queue orchestration, alerting, and **AI-powered venue assistant** capabilities.
 
-## Repository Structure
+---
 
-- Root contains this README, `frontend/`, and `backend/`.
-- Backend implementation is encapsulated under `backend/`.
-
-Run all backend setup and runtime commands from inside `backend/`.
-
-## Stack
-
-- **Python 3.11+**
-- **FastAPI** (async)
-- **SQLAlchemy 2.0** async ORM with SQLite (PostgreSQL ready)
-- **WebSockets** for real-time streams
-- **Pydantic v2** validation
-- **Alembic** migrations
-- **Groq LLM** for AI features (optional)
-- **httpx** for external API calls
-
-## Features
-
-1. **Crowd Intelligence**
-   - Real-time crowd snapshot ingestion
-   - Density trend prediction with heuristics
-   - Threshold-based alerting
-   - WebSocket stream for venue crowd channels
-
-2. **Smart Queue Orchestration**
-   - Virtual queue join with live position tracking
-   - ETA generation and queue position updates
-   - Queue visibility via WebSocket channels
-
-3. **Incident & Alert Command Center
-- Incident creation with async AI summary/action plan
-- Alert publish endpoint with Redis + WebSocket fan-out
-- Severity categorization and escalation fields
-
-4. Venue operations intelligence
-- Venue layout endpoint with GeoJSON zones
-- Venue condition endpoint with weather signal enrichment
-- Live sports score polling and cache
-
-5. Security and roles
-- OAuth2 password flow
-- JWT access tokens
-- Role-based access control (`attendee`, `staff`, `admin`)
-
-6. Real-time channels
-- `WS /ws/crowd/{venue_id}`
-- `WS /ws/queue/{user_id}`
-- `WS /ws/alerts/{venue_id}`
-
-## Folder Layout
+## 📋 Repository Structure
 
 ```
-app/
-  api/routers/
-  core/
-  db/
-  models/
-  routers/
-  schemas/
-  services/
-  tasks/
-alembic/
-scripts/
-postman/
-nginx/
+Relaxena/
+├── backend/           # FastAPI async server
+├── frontend/          # Next.js 16 React app
+├── README.md          # This file
+└── .gitignore
 ```
 
-## Architecture Flow
+---
 
-1. Sensors and app clients send crowd/queue/incident events to FastAPI.
-2. FastAPI persists state in SQLite/MySQL and pushes messages to Redis.
-3. WebSocket manager broadcasts crowd, queue, and alert channels to clients.
-4. Celery worker/beat process predictive and optimization jobs.
-5. Nginx fronts the API in containerized deployments.
+## 🚀 Quick Start (Local Development)
 
-## Quick Start (Local SQLite)
-
-1. Create env file:
+### **Backend** (Terminal 1)
 
 ```bash
+# Navigate to backend
 cd backend
+
+# Copy environment template
 cp .env.example .env
-```
 
-2. Create virtual environment and install dependencies:
-
-```bash
+# Create virtual environment
 python -m venv .venv
+
+# Activate (Windows)
 .venv\Scripts\activate
+# Or macOS/Linux:
+# source .venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Initialize database
+python -m alembic upgrade head
+
+# Start server
+python -m uvicorn app.main:app --reload
 ```
 
-3. Run migrations:
+**Backend ready at**: http://127.0.0.1:8000
+
+---
+
+### **Frontend** (Terminal 2)
 
 ```bash
-alembic upgrade head
-```
+# Navigate to frontend
+cd frontend
 
-4. Start API:
-
-```bash
-uvicorn app.main:app --reload
-```
-
-5. Seed demo data (optional):
-
-```bash
-python -m scripts.seed_demo
-```
-
-6. Run frontend (in a separate terminal):
-
-```bash
-cd ..\frontend
+# Copy environment template
 cp .env.example .env.local
+
+# Install dependencies
 npm install
+
+# Start dev server
 npm run dev
 ```
 
-Open http://localhost:3000.
+**Frontend ready at**: http://localhost:3000
 
-## Dummy Login Credentials
+---
 
-Use these seeded credentials for demo/testing:
+## 🎯 Features
 
-- Email: admin@relaxena.com
-- Password: Admin@12345
+### 1. **Crowd Intelligence**
+- Real-time density snapshot ingestion
+- Heuristic + AI-powered density prediction
+- Threshold-based alerting (>0.85 density)
+- WebSocket stream: `/ws/crowd/{venue_id}`
 
-## Environment Configuration
+### 2. **Smart Queue Orchestration**
+- Virtual queue join with live position tracking
+- Dynamic ETA calculation
+- Queue visibility via WebSocket: `/ws/queue/{user_id}`
 
-Copy `.env.example` to `.env` and customize:
+### 3. **Incident & Alert Command**
+- Staff incident reporting with AI auto-triage
+- Alert broadcasting with WebSocket fan-out: `/ws/alerts/{venue_id}`
+- Severity categorization and escalation
 
-```bash
-cp backend/.env.example backend/.env
+### 4. **Venue Operations Intelligence**
+- Venue layout endpoint with GeoJSON zones
+- Venue condition endpoint with weather enrichment
+- Live sports score polling and caching
+
+### 5. **Security & RBAC**
+- OAuth2 + JWT authentication
+- Role-based access: `attendee`, `staff`, `admin`
+- Password hashing with bcrypt
+
+### 6. **✨ AI-Powered Venue Assistant** (NEW — 6 Features)
+
+#### 1️⃣ **Streaming Chat Assistant**
+`POST /api/ai/chat`
+- Real-time chat with enriched venue context
+- Crowd densities, wait times, zone recommendations
+- Server-Sent Events (SSE) streaming
+- 10-message conversation history per user
+
+#### 2️⃣ **Smart Venue Tips**
+`GET /api/ai/tip?venue_id={id}`
+- One-sentence actionable recommendation
+- Based on crowded vs. low-wait zones
+- Cached 2 minutes per venue
+
+#### 3️⃣ **Crowd Prediction Narrative**
+`GET /api/ai/predict?venue_id={id}`
+- Heuristic density predictions + AI narrative
+- 15-30-60 min trend explanations
+- Cached 5 minutes
+
+#### 4️⃣ **Personalized Route Suggestion**
+`POST /api/ai/route`
+- Step-by-step navigation
+- Avoid high-density zones dynamically
+- Respects user mobility/food preferences
+
+#### 5️⃣ **Incident Auto-Triage**
+`POST /api/ai/triage-incident`
+- Auto-classify severity (1-10)
+- Category: medical | crowd | technical | security
+- Suggest immediate steps
+
+#### 6️⃣ **Post-Event Summary**
+`POST /api/ai/event-summary`
+- Markdown report with highlights
+- Identify bottlenecks & improvement areas
+- Download-ready PDF export
+
+---
+
+## 🔌 Tech Stack
+
+### Backend
+- **Python 3.11+**
+- **FastAPI** (async)
+- **SQLAlchemy 2.0** async ORM
+- **Groq LLM** for AI (optional — llama3-70b-8192)
+- **WebSockets** (FastAPI native)
+- **Alembic** (migrations)
+- **Pydantic v2** (validation)
+- **SQLite** (default) / **PostgreSQL** (production-ready)
+
+### Frontend
+- **Next.js 16** (React)
+- **TypeScript**
+- **Tailwind CSS** / **Shadcn UI**
+- **React Query** (data fetching)
+- **WebSocket** (real-time updates)
+
+### Infrastructure
+- ✅ **No Redis**, Celery, Docker, or Nginx required
+- ✅ In-memory caching with TTL
+- ✅ All external APIs optional (Groq, OpenWeather, SportsData)
+
+---
+
+## 📁 Key Folders
+
+```
+backend/
+  app/
+    api/routers/          # API endpoints (auth, venues, ai, etc.)
+    services/             # Business logic (ai_service, crowd_service, etc.)
+    core/                 # Config, cache, websocket manager
+    models/               # SQLAlchemy ORM models
+    schemas/              # Pydantic request/response models
+    db/                   # Database session
+  alembic/                # Schema migrations
+  requirements.txt        # Python dependencies
+  .env.example           # Environment template
+
+frontend/
+  app/                    # Next.js pages & layouts
+  components/             # React components
+  lib/                    # Utilities & API client
+  hooks/                  # React hooks
+  context/                # React context state
+  package.json           # Node dependencies
+  .env.example           # Environment template
 ```
 
-Key settings:
-- `GROQ_API_KEY` — Get from https://console.groq.com (optional for AI features)
-- `OPENWEATHER_API_KEY` — Optional for weather enrichment
-- `SPORTSDATA_API_KEY` — Optional for live sports scores
-- `DATABASE_URL` — Leave blank for SQLite, or set to PostgreSQL for production
+---
 
-## Migrations
+## 🌍 Environment Configuration
 
-Migrations include:
-- `20260414_0001_initial_schema.py`
-- `20260414_0002_arenaflow_expansion.py`
+### Backend (`.env`)
 
-Run migrations:
+```bash
+# Required
+APP_NAME=Relaxena
+SECRET_KEY=change-in-production
+JWT_SECRET_KEY=change-in-production
+
+# Optional: AI Features
+GROQ_API_KEY=your-groq-api-key        # Get from https://console.groq.com
+GROQ_MODEL=llama3-70b-8192            # Primary model
+GROQ_FALLBACK_MODEL=mixtral-8x7b-32768 # Fallback
+
+# Optional: External APIs
+OPENWEATHER_API_KEY=
+SPORTSDATA_API_KEY=
+
+# Optional: Database (leave empty for SQLite)
+DATABASE_URL=
+
+# Optional: Frontend
+CORS_ORIGINS=http://localhost:3000
+```
+
+### Frontend (`.env.local`)
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_WS_URL=ws://localhost:8000
+```
+
+---
+
+## 🔐 Demo Credentials
+
+If you seed the database:
 
 ```bash
 cd backend
-alembic upgrade head
+python -m scripts.seed_demo
 ```
 
-Create new migration:
+Use these to test:
+- **Email**: admin@relaxena.com
+- **Password**: Admin@12345
+
+---
+
+## 📊 API Examples
+
+### 1. Register & Login
 
 ```bash
-alembic revision --autogenerate -m "describe change"
+# Register
+curl -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "SecurePass123"
+  }'
+
+# Login (returns access_token)
+curl -X POST http://localhost:8000/auth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=user@example.com&password=SecurePass123"
 ```
 
-## Key API Endpoints
+### 2. AI Chat Stream
 
-### Auth
-- `POST /auth/register` — Sign up
-- `POST /auth/token` — Log in
-- `GET /auth/me` — Current user
+```bash
+TOKEN="<your-jwt-token>"
 
-### Venue Data
-- `GET /api/venues/{venue_id}/layout` — Zone layout and capacity
-- `GET /api/venues/{venue_id}/conditions` — Weather and crowd score
+curl -N -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Where should I go to avoid crowds?",
+    "venue_id": 1,
+    "user_id": 1
+  }' \
+  http://localhost:8000/api/ai/chat
+```
 
-### Crowd & Sensors
-- `POST /api/sensors/update` — Report crowd count changes
-- `GET /api/ai/predict?venue_id={id}` — Density predictions
+### 3. Get Smart Tip
 
-### Queues
-- `POST /api/queues/join` — Join virtual queue
-- `WS /ws/queue/{user_id}` — Queue position updates
+```bash
+TOKEN="<your-jwt-token>"
 
-### Incidents & Alerts
-- `POST /api/incidents` — Report incident
-- `POST /api/alerts/publish` — Broadcast alert
-- `WS /ws/alerts/{venue_id}` — Alert stream
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8000/api/ai/tip?venue_id=1"
+```
 
-### AI Assistant
-- `POST /api/ai/chat` — Server-sent events chat stream
-- `GET /api/ai/predict?venue_id={id}` — Crowd prediction
+### 4. Crowd Prediction with Narrative
 
-### WebSocket Channels
-- `/ws/crowd/{venue_id}` — Real-time crowd updates
-- `/ws/queue/{user_id}` — Queue position notifications
-- `/ws/alerts/{venue_id}` — Safety and operational alerts
+```bash
+TOKEN="<your-jwt-token>"
 
-## Notes
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8000/api/ai/predict?venue_id=1"
+```
 
-- SQLite is the default local database for development
-- PostgreSQL ready via `DATABASE_URL` environment variable
-- No external infrastructure required (no Redis, Docker, or Celery)
-- All external API calls (Groq, OpenWeather, etc.) are optional
-- For production: rotate secrets, enable HTTPS, customize CORS origins
+### 5. Auto-Triage Incident
+
+```bash
+TOKEN="<your-jwt-token>"
+
+curl -X POST http://localhost:8000/api/ai/triage-incident \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Person fell near entrance",
+    "venue_id": 1,
+    "zone_id": 2
+  }'
+```
+
+---
+
+## 🗄️ Database Migrations
+
+### Initialize (Fresh DB)
+
+```bash
+cd backend
+python -m alembic upgrade head
+```
+
+### Create New Migration
+
+```bash
+python -m alembic revision --autogenerate -m "describe change"
+python -m alembic upgrade head
+```
+
+### Switch to PostgreSQL
+
+Edit `backend/.env`:
+```
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/relaxena
+```
+
+Then run:
+```bash
+python -m alembic upgrade head
+```
+
+---
+
+## 🧪 Testing
+
+### Health Check
+
+```bash
+curl http://localhost:8000/health
+```
+
+### API Documentation
+
+```
+http://localhost:8000/docs              # Swagger UI
+http://localhost:8000/redoc             # ReDoc
+```
+
+### WebSocket Test (Crowd Channel)
+
+```bash
+# Using websocat (https://github.com/vi/websocat)
+websocat ws://localhost:8000/ws/crowd/1
+
+# Send: ping
+# Receive: pong
+```
+
+---
+
+## 📝 Notes
+
+- ✅ **No external services needed** for local dev (SQLite, in-memory cache)
+- ✅ **Optional Groq API key** for AI features (heuristics work without it)
+- ✅ **Conversation history** is in-memory (add DB persistence for production)
+- ✅ **WebSocket ping/pong** keeps connections alive (30s timeout)
+- ⚠️ **For production**: rotate SECRET_KEY, enable HTTPS, whitelist CORS origins
+
+---
+
+## 📚 Documentation
+
+- Backend API: See `backend/README.md` for detailed endpoints, schema, and configuration
+- Frontend: See `frontend/.env.example` for env vars
+
+---
+
+## 🎓 Architecture
+
+1. User opens frontend (Next.js) at http://localhost:3000
+2. Frontend authenticates with backend JWT
+3. Backend persists data in SQLite/PostgreSQL
+4. Real-time updates via WebSockets (`/ws/crowd/`, `/ws/queue/`, `/ws/alerts/`)
+5. AI requests use Groq LLM (optional, fallback to heuristics)
+6. In-memory cache stores tips, predictions, event summaries
+
+---
+
+## 💡 Key Highlights
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| **Crowd Intelligence** | ✅ Live | Real-time density + AI prediction |
+| **Queue Orchestration** | ✅ Live | Virtual queue with ETA |
+| **AI Assistant** | ✅ NEW | 6 features (chat, tips, routing, triage, summary) |
+| **WebSocket Streams** | ✅ Live | Crowd, queue, alerts channels |
+| **RBAC** | ✅ Live | Attendee, staff, admin roles |
+| **Migrations** | ✅ Live | Alembic schema versioning |
+| **Local SQLite** | ✅ Default | PostgreSQL ready via env var |
+| **Docker** | ❌ Not required | Works locally with just Python + Node |
+| **Redis/Celery** | ❌ Removed | Replaced with in-memory + asyncio |
+
+---
+
+**Ready to go!** 🚀
+

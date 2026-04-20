@@ -1,102 +1,64 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { InteractiveMap } from "@/components/venue/InteractiveMap";
+import { useState } from "react";
+import { VenueMapFull } from "@/components/venue/VenueMapFull";
+import { ZoneDetailPanel } from "@/components/venue/ZoneDetailPanel";
+import { MapLayerControls } from "@/components/venue/MapLayerControls";
+import { useVenueStore } from "@/stores/venueStore";
 import { Button } from "@/components/ui/button";
-import { Crosshair, Layers } from "lucide-react";
-import { fetchHeatmap } from "@/lib/api";
-import { useWebSocket } from "@/hooks/useWebSocket";
-
-const DEFAULT_VENUE_ID = Number(process.env.NEXT_PUBLIC_DEFAULT_VENUE_ID || 1);
+import { ShieldAlert, Info, LocateFixed } from "lucide-react";
 
 export default function MapPage() {
-  const [densitiesByZoneId, setDensitiesByZoneId] = useState<Record<number, number>>({});
-  const { data: crowdUpdate } = useWebSocket<{ zone_id?: number; density_score?: number }>(
-    `/ws/crowd/${DEFAULT_VENUE_ID}`
-  );
+  const { zones } = useVenueStore();
+  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const heatmap = await fetchHeatmap(DEFAULT_VENUE_ID);
-        const latestByZone: Record<number, number> = {};
-        heatmap.forEach((point) => {
-          latestByZone[point.zone_id] = point.density_score;
-        });
-        setDensitiesByZoneId(latestByZone);
-      } catch {
-        setDensitiesByZoneId({});
-      }
-    };
+  const handleZoneClick = (zoneId: string) => {
+    setSelectedZoneId(zoneId);
+    setIsPanelOpen(true);
+  };
 
-    load();
-  }, []);
-
-  const mergedDensitiesByZoneId = useMemo(() => {
-    if (!crowdUpdate?.zone_id || crowdUpdate?.density_score === undefined) {
-      return densitiesByZoneId;
-    }
-
-    return {
-      ...densitiesByZoneId,
-      [crowdUpdate.zone_id]: crowdUpdate.density_score,
-    };
-  }, [densitiesByZoneId, crowdUpdate]);
-
-  const bestZone = useMemo(() => {
-    const entries = Object.entries(mergedDensitiesByZoneId);
-    if (!entries.length) {
-      return { zone: "Zone 1", density: 0 };
-    }
-
-    const sorted = [...entries].sort((a, b) => a[1] - b[1]);
-    return { zone: `Zone ${sorted[0][0]}`, density: Math.round(sorted[0][1] * 100) };
-  }, [mergedDensitiesByZoneId]);
+  const activeZone = zones.find(z => z.id === selectedZoneId) || 
+    (selectedZoneId ? { id: selectedZoneId, name: selectedZoneId.replace('_', ' ').toUpperCase(), density: 45 } as any : null);
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+    <div className="h-[calc(100vh-128px)] relative flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold">Venue Map</h1>
-          <p className="text-zinc-500">Live crowd density and points of interest.</p>
+          <h1 className="text-3xl font-black text-white tracking-tighter">Live Venue Map</h1>
+          <p className="text-muted-foreground mt-1">Real-time zone monitoring and navigation</p>
         </div>
-        <div className="flex gap-2">
-            <Button variant="ghost" size="icon" className="glass h-12 w-12 rounded-2xl text-zinc-400 hover:text-white">
-                <Layers className="w-5 h-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="glass h-12 w-12 rounded-2xl text-zinc-400 hover:text-white">
-                <Crosshair className="w-5 h-5" />
-            </Button>
+        
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="rounded-full gap-2 border-border bg-surface text-xs font-bold uppercase tracking-wider">
+            <LocateFixed className="w-3.5 h-3.5" /> Find My Seat
+          </Button>
+          <Button variant="outline" className="rounded-full gap-2 border-border bg-surface text-xs font-bold uppercase tracking-wider">
+            <ShieldAlert className="w-3.5 h-3.5 text-danger" /> Emergency
+          </Button>
         </div>
       </div>
 
-      <div className="relative">
-        <InteractiveMap densitiesByZoneId={mergedDensitiesByZoneId} />
+      <div className="flex-1 relative rounded-3xl overflow-hidden border border-border group">
+        <MapLayerControls />
+        
+        <VenueMapFull onZoneClick={handleZoneClick} />
+        
+        <ZoneDetailPanel 
+          zone={activeZone} 
+          isOpen={isPanelOpen} 
+          onClose={() => setIsPanelOpen(false)} 
+        />
 
-        {/* Floating POI Card */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-[400px] px-8">
-            <div className="glass p-4 rounded-[32px] flex items-center justify-between bg-zinc-900/80 shadow-2xl border-white/5">
-                <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-[24px] bg-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img 
-                            src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=100" 
-                            alt="Restroom"
-                            className="w-full h-full object-cover opacity-50"
-                        />
-                    </div>
-                    <div>
-                        <h4 className="font-bold">Restroom A4</h4>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] font-black tracking-widest text-emerald-400 uppercase">BEST ROUTE</span>
-                            <span className="text-zinc-500">•</span>
-                          <span className="text-[10px] font-black tracking-widest text-zinc-500 uppercase">{bestZone.zone} {bestZone.density}%</span>
-                        </div>
-                    </div>
-                </div>
-                <Button className="rounded-2xl px-6 h-12 bg-gradient-to-r from-blue-600 to-pink-500 border-0 font-bold tracking-tight">
-                    Route
-                </Button>
-            </div>
+        {/* Small floating info for desktop */}
+        <div className="absolute right-8 bottom-8 p-4 bg-surface/90 backdrop-blur-md border border-border rounded-2xl max-w-[240px] shadow-2xl z-20 animate-in fade-in slide-in-from-right-4 duration-700">
+          <div className="flex items-center gap-2 mb-2">
+            <Info className="w-4 h-4 text-primary" />
+            <h4 className="text-xs font-bold text-white uppercase tracking-widest">Venue Status</h4>
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Infrastructure monitoring is online. All {zones.length} sectors reporting live data. Use layers to switch between view modes.
+          </p>
         </div>
       </div>
     </div>

@@ -29,6 +29,7 @@ class Settings(BaseSettings):
 
     groq_api_key: str | None = None
     groq_model: str = "llama3-70b-8192"
+    groq_fallback_model: str = "mixtral-8x7b-32768"
 
     openweather_api_key: str | None = None
     sportsdata_api_key: str | None = None

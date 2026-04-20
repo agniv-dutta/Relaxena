@@ -1,55 +1,76 @@
 "use client";
 
-import { Timer } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { useQueueStore } from "@/stores/queueStore";
+import { Card, CardContent } from "@/components/ui/card";
+import { Users, Timer, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-interface ActiveQueueCardProps {
-  resourceName: string;
-  position: number;
-  estimatedWaitMinutes: number;
-  isActive: boolean;
-}
+export function ActiveQueueCard() {
+  const { activeQueue, leaveQueue } = useQueueStore();
 
-export function ActiveQueueCard({
-  resourceName,
-  position,
-  estimatedWaitMinutes,
-  isActive,
-}: ActiveQueueCardProps) {
-  const minutes = Math.max(0, Math.round(estimatedWaitMinutes));
-  const timeLabel = `${String(minutes).padStart(2, "0")}:00`;
+  if (!activeQueue) {
+    return (
+      <Card className="bg-surface border-dashed border-border flex flex-col items-center justify-center p-8 text-center bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02),transparent)]">
+        <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center mb-4 border border-border">
+          <Users className="w-6 h-6 text-muted-foreground" />
+        </div>
+        <p className="text-sm font-medium text-white mb-1">No Active Queues</p>
+        <p className="text-xs text-muted-foreground mb-4">Join a queue for food, drinks, or restrooms to save time.</p>
+        <Button variant="outline" size="sm" className="rounded-full h-8 px-6 text-xs hover:bg-primary hover:text-white hover:border-primary transition-all">
+          Browse Locations
+        </Button>
+      </Card>
+    );
+  }
 
   return (
-    <div className="relative w-full overflow-hidden rounded-[48px] p-10 bg-gradient-to-br from-blue-600 via-indigo-600 to-pink-500 shadow-[0_20px_50px_rgba(59,130,246,0.3)] border border-white/20">
-      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-      
-      <div className="relative z-10 flex flex-col gap-10">
-        <div className="flex justify-between items-start">
-          <div>
-            <span className="text-[10px] font-black tracking-widest text-blue-100 uppercase opacity-70">Currently in Queue</span>
-            <h2 className="text-5xl font-black mt-2 text-white">{resourceName}</h2>
+    <Card className="bg-surface border-primary/20 relative overflow-hidden group border-l-4 border-l-primary">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <Timer className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-white">{activeQueue.location_name}</h3>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{activeQueue.category} Queue</p>
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-1">
-            <Timer className="w-8 h-8 text-white mb-2" />
-            <span className="text-4xl font-black text-white">{timeLabel}</span>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-muted-foreground hover:text-danger"
+            onClick={leaveQueue}
+          >
+            <XCircle className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <div className="flex items-end justify-between">
+          <div className="space-y-1">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Position</p>
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-black text-white">{activeQueue.position}</span>
+              <span className="text-xs text-muted-foreground font-medium">of 42</span>
+            </div>
+          </div>
+
+          <div className="text-right space-y-1">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Est. Wait</p>
+            <div className="flex items-baseline justify-end gap-1 text-primary">
+              <span className="text-3xl font-black">{activeQueue.estimated_wait_minutes}</span>
+              <span className="text-xs font-bold uppercase tracking-tighter">min</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex justify-between items-end">
-          <div>
-            <span className="text-[10px] font-black tracking-widest text-blue-100 uppercase opacity-70">Your Position</span>
-            <div className="text-8xl font-black text-white mt-2 leading-none">#{position}</div>
-          </div>
-          
-          <Badge className="bg-black/40 backdrop-blur-md text-white border-white/20 px-6 py-2 rounded-full flex items-center gap-2 hover:bg-black/60 cursor-default">
-            <div className={`w-2 h-2 rounded-full ${isActive ? "bg-emerald-400 animate-pulse" : "bg-zinc-400"}`} />
-            <span className="text-[10px] font-bold tracking-widest">{isActive ? "ACTIVE" : "IDLE"}</span>
-          </Badge>
+        <div className="mt-6 h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-1000" 
+            style={{ width: `${Math.max(10, 100 - (activeQueue.position / 42) * 100)}%` }}
+          />
         </div>
-      </div>
-
-      {/* Gloss reflection overlay */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
-    </div>
+      </CardContent>
+    </Card>
   );
 }

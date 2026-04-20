@@ -1,6 +1,6 @@
 export type Severity = "low" | "medium" | "high" | "critical";
 export type AlertType = "info" | "warning" | "urgent" | "staff";
-export type QueueCategory = "food" | "rest" | "gates" | "merch";
+export type QueueCategory = "food" | "rest" | "gates" | "merch" | "merchandise" | "drinks" | "restrooms";
 
 export interface UserProfile {
   id: number;

@@ -18,11 +18,11 @@ export function VenueMapFull({ onZoneClick }: VenueMapFullProps) {
     const isSelected = activeZone === id;
     let base = "";
     
-    if (density < 40) base = "fill-success/20 stroke-success/60 hover:fill-success/30";
-    else if (density < 71) base = "fill-warning/20 stroke-warning/60 hover:fill-warning/30";
-    else base = "fill-danger/20 stroke-danger/60 hover:fill-danger/30";
+    if (density < 30) base = "fill-success/20 stroke-success/40 hover:fill-success/40";
+    else if (density < 60) base = "fill-warning/20 stroke-warning/40 hover:fill-warning/40";
+    else base = "fill-danger/20 stroke-danger/40 hover:fill-danger/40";
 
-    return cn(base, isSelected && "fill-primary/40 stroke-primary stroke-[3px]");
+    return cn(base, "transition-all duration-300 cursor-pointer", isSelected && "fill-primary/40 stroke-primary stroke-[3px]");
   };
 
   const handleZoneClick = (id: string) => {
@@ -30,77 +30,103 @@ export function VenueMapFull({ onZoneClick }: VenueMapFullProps) {
     onZoneClick(id);
   };
 
+  // Generate 16 segments for an oval stadium
+  const segments = Array.from({ length: 16 }, (_, i) => {
+    const angleStart = (i * 360) / 16;
+    const angleEnd = ((i + 1) * 360) / 16;
+    const radStart = (angleStart * Math.PI) / 180;
+    const radEnd = (angleEnd * Math.PI) / 180;
+    
+    const rOuterX = 350, rOuterY = 250;
+    const rInnerX = 220, rInnerY = 140;
+    const centerX = 400, centerY = 300;
+
+    const x1 = centerX + rOuterX * Math.cos(radStart);
+    const y1 = centerY + rOuterY * Math.sin(radStart);
+    const x2 = centerX + rOuterX * Math.cos(radEnd);
+    const y2 = centerY + rOuterY * Math.sin(radEnd);
+    const x3 = centerX + rInnerX * Math.cos(radEnd);
+    const y3 = centerY + rInnerY * Math.sin(radEnd);
+    const x4 = centerX + rInnerX * Math.cos(radStart);
+    const y4 = centerY + rInnerY * Math.sin(radStart);
+
+    return {
+      id: `zone-${i + 1}`,
+      path: `M ${x1} ${y1} A ${rOuterX} ${rOuterY} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${rInnerX} ${rInnerY} 0 0 0 ${x4} ${y4} Z`,
+      label: `${['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(i / 2)]}${i % 2 + 1}`,
+      labelX: centerX + ((rOuterX + rInnerX) / 2) * Math.cos((radStart + radEnd) / 2),
+      labelY: centerY + ((rOuterY + rInnerY) / 2) * Math.sin((radStart + radEnd) / 2),
+      density: Math.floor(Math.random() * 100)
+    };
+  });
+
   return (
-    <div className="relative w-full h-full bg-zinc-950 rounded-3xl border border-border overflow-hidden shadow-2xl">
-      {/* Background Grid Pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_70%,transparent_100%)] pointer-events-none" />
+    <div className="relative w-full h-full bg-[#0a0a0f] rounded-[2.5rem] overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.05),transparent)] pointer-events-none" />
       
-      {/* Map Content */}
-      <div className="absolute inset-0 flex items-center justify-center p-12">
-        <svg viewBox="0 0 800 600" className="w-full h-full drop-shadow-[0_0_30px_rgba(59,130,246,0.1)]">
-          {/* Main Stadium Outer */}
-          <rect x="50" y="50" width="700" height="500" rx="150" className="fill-zinc-900 stroke-border stroke-2" />
+      <div className="absolute inset-0 flex items-center justify-center p-8">
+        <svg viewBox="0 0 800 600" className="w-full h-full drop-shadow-2xl">
+          {/* Pitch */}
+          <rect x="250" y="200" width="300" height="200" rx="10" className="fill-zinc-900/50 stroke-white/10 stroke-1" />
+          <line x1="400" y1="200" x2="400" y2="400" className="stroke-white/10 stroke-1" />
+          <circle cx="400" cy="300" r="40" className="fill-none stroke-white/10 stroke-1" />
           
-          {/* Inner Field */}
-          <rect x="150" y="150" width="500" height="300" rx="80" className="fill-zinc-950 stroke-border/30 stroke-1" />
-          <path d="M400,150 L400,450" className="stroke-white/10 stroke-1 dashed" />
-          
-          {/* Zones - North */}
-          <path 
-            onClick={() => handleZoneClick('north_a')}
-            d="M200,50 L600,50 L550,150 L250,150 Z" 
-            className={cn("transition-all duration-300 cursor-pointer", getZoneColor(zones[0]?.density || 25, 'north_a'))} 
-          />
-          <text x="400" y="100" className="fill-white/80 text-[12px] font-bold pointer-events-none text-center" textAnchor="middle">NORTH SECTOR</text>
+          {/* Zones */}
+          {segments.map((seg) => (
+            <g key={seg.id} className="group/zone">
+              <path 
+                d={seg.path}
+                className={getZoneColor(seg.density, seg.id)}
+                onClick={() => handleZoneClick(seg.id)}
+              />
+              <text 
+                x={seg.labelX} 
+                y={seg.labelY} 
+                className="fill-white/40 text-[9px] font-black pointer-events-none uppercase tracking-tighter group-hover/zone:fill-white transition-colors"
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                {seg.label}
+              </text>
+            </g>
+          ))}
 
-          {/* Zones - South */}
-          <path 
-            onClick={() => handleZoneClick('south_b')}
-            d="M200,550 L600,550 L550,450 L250,450 Z" 
-            className={cn("transition-all duration-300 cursor-pointer", getZoneColor(zones[2]?.density || 84, 'south_b'))} 
-          />
-          <text x="400" y="510" className="fill-white/80 text-[12px] font-bold pointer-events-none text-center" textAnchor="middle">SOUTH SECTOR</text>
-
-          {/* Zones - West */}
-          <path 
-            onClick={() => handleZoneClick('west_c')}
-            d="M50,200 L50,400 L150,350 L150,250 Z" 
-            className={cn("transition-all duration-300 cursor-pointer", getZoneColor(zones[1]?.density || 68, 'west_c'))} 
-          />
-          <text x="100" y="305" className="fill-white/80 text-[12px] font-bold pointer-events-none [writing-mode:vertical-rl]" textAnchor="middle" transform="rotate(-90 100,305)">WEST SECTOR</text>
-
-          {/* Zones - East */}
-          <path 
-            onClick={() => handleZoneClick('east_d')}
-            d="M750,200 L750,400 L650,350 L650,250 Z" 
-            className={cn("transition-all duration-300 cursor-pointer", getZoneColor(45, 'east_d'))} 
-          />
-          <text x="700" y="305" className="fill-white/80 text-[12px] font-bold pointer-events-none" textAnchor="middle" transform="rotate(90 700,305)">EAST SECTOR</text>
+          {/* Highlights for high density */}
+          {segments.filter(s => s.density > 80).map(s => (
+            <circle 
+              key={`pulse-${s.id}`}
+              cx={s.labelX} 
+              cy={s.labelY + 10} 
+              r="2" 
+              className="fill-danger animate-pulse" 
+            />
+          ))}
         </svg>
       </div>
 
-      {/* Map Controls */}
-      <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-2">
-        <MapControlButton icon={<Maximize className="w-4 h-4" />} />
-        <div className="h-4" />
-        <MapControlButton icon={<ZoomIn className="w-4 h-4" />} />
-        <MapControlButton icon={<ZoomOut className="w-4 h-4" />} />
+      {/* Legend */}
+      <div className="absolute left-10 bottom-10 flex items-center gap-8 px-8 py-5 glass rounded-3xl border-white/5">
+        <div className="flex items-center gap-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-success shadow-[0_0_10px_#22c55e]" />
+          <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Active</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-warning shadow-[0_0_10px_#f59e0b]" />
+          <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Busy</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-danger shadow-[0_0_10px_#ef4444] animate-pulse" />
+          <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Congested</span>
+        </div>
       </div>
 
-      {/* Map Legend */}
-      <div className="absolute left-8 bottom-8 flex items-center gap-6 px-6 py-4 bg-surface/80 backdrop-blur-md rounded-2xl border border-border shadow-2xl">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-success shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-          <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Low</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-warning shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-          <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Med</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-danger shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-          <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">High</span>
-        </div>
+      {/* Controls */}
+      <div className="absolute right-10 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+        {[Maximize, ZoomIn, ZoomOut, Info].map((Icon, i) => (
+          <Button key={i} variant="ghost" size="icon" className="w-12 h-12 rounded-2xl glass border-white/5 text-muted-foreground hover:text-white hover:bg-primary/20 transition-all">
+            <Icon className="w-5 h-5" />
+          </Button>
+        ))}
       </div>
     </div>
   );

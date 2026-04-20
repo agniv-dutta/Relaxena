@@ -1,46 +1,77 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+const tips = [
+  "The Food Court in Sector B is currently at 40% capacity. It's a great time to grab a snack before the halftime rush begins in 15 minutes.",
+  "Looking for a shorter queue? The merchandise stand at Gate N2 has a wait time of only 4 minutes right now.",
+  "Crowd levels are peaking near the South Exit. If you're heading out, consider using Gate E4 for a 10-minute faster exit.",
+];
 
 export function AITipCard() {
-  return (
-    <Card className="bg-gradient-to-br from-primary/20 via-surface to-background border-primary/30 relative overflow-hidden group">
-      <div className="absolute -right-8 -top-8 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700" />
+  const [tip, setTip] = useState("");
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  useEffect(() => {
+    const streamTip = async () => {
+      setIsStreaming(true);
+      setTip("");
+      const fullTip = tips[currentTipIndex % tips.length];
       
-      <CardContent className="p-6 relative">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-xl bg-primary text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <h3 className="font-bold text-white tracking-tight">ArenaFlow AI Suggestion</h3>
-        </div>
+      for (let i = 0; i <= fullTip.length; i++) {
+        setTip(fullTip.slice(0, i));
+        await new Promise(r => setTimeout(r, 20));
+      }
+      setIsStreaming(false);
+    };
 
-        <p className="text-sm text-white/90 leading-relaxed mb-6 font-medium">
-          "The Food Court in Sector B is currently at 40% capacity. It's a great time to grab a snack before the halftime rush begins in 15 minutes."
-        </p>
+    streamTip();
 
-        <div className="flex items-center justify-between">
-          <div className="flex -space-x-2">
-            {[1, 2, 3].map((i) => (
-              <div 
-                key={i} 
-                className="w-6 h-6 rounded-full border-2 border-surface bg-zinc-800 flex items-center justify-center text-[8px] font-bold text-muted-foreground"
-              >
-                U{i}
-              </div>
-            ))}
-            <div className="pl-3 text-[10px] text-muted-foreground self-center">
-              +142 users took this tip
+    const interval = setInterval(() => {
+      setCurrentTipIndex(prev => prev + 1);
+    }, 180000); // 3 minutes
+
+    return () => clearInterval(interval);
+  }, [currentTipIndex]);
+
+  return (
+    <div className="relative group">
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-pink-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+      <Card className="bg-zinc-900/50 border-dashed border-primary/40 relative overflow-hidden group hover:border-primary/60 transition-all rounded-3xl">
+        <CardContent className="p-6 relative">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+              <Bot className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-0.5">Rexi Suggests:</p>
+              <h3 className="font-bold text-white tracking-tight text-xs uppercase">Smart Insights</h3>
             </div>
           </div>
 
-          <Button size="sm" className="rounded-full bg-white text-black hover:bg-white/90 group/btn">
-            Explore <ArrowRight className="w-3 h-3 ml-1 group-hover/btn:translate-x-1 transition-transform" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="min-h-[60px] mb-6">
+            <p className="text-sm text-white/90 leading-relaxed font-medium">
+              {tip}
+              {isStreaming && <span className="inline-block w-1 h-4 bg-primary ml-1 animate-pulse" />}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between">
+             <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+                <Sparkles className="w-3 h-3 text-pink-500 fill-pink-500" />
+                Updated Just Now
+             </div>
+             <Button variant="ghost" size="sm" className="h-8 rounded-full text-[10px] font-black uppercase text-primary hover:text-white hover:bg-primary/20 transition-all group/btn">
+               Details <ArrowRight className="w-3 h-3 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+             </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

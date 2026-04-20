@@ -5,7 +5,7 @@ export const useChat = () => {
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, context?: string) => {
     const userMessage: AIMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -20,7 +20,7 @@ export const useChat = () => {
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ message: content, context }),
       });
 
       if (!response.body) return;

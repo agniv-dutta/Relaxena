@@ -10,104 +10,100 @@ import { LiveScoreCard } from "@/components/venue/LiveScoreCard";
 import { useEffect } from "react";
 import { useVenueStore } from "@/stores/venueStore";
 
+import { QuickActions } from "@/components/venue/QuickActions";
+import { NearbyWaitsStrip } from "@/components/venue/NearbyWaitsStrip";
+import { CrowdPulseWidget } from "@/components/venue/CrowdPulseWidget";
+import { Zap, MapPin, Navigation } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+
 export default function DashboardPage() {
   const { setLoading } = useVenueStore();
 
   useEffect(() => {
-    // Simulate initial data loading
     setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 1000);
+    const timer = setTimeout(() => setLoading(false), 800);
     return () => clearTimeout(timer);
   }, [setLoading]);
 
   return (
-    <div className="space-y-8 pb-12">
-      {/* Header section with status bars */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-1000">
-        <div>
-          <h1 className="text-3xl font-black text-white tracking-tighter sm:text-4xl">
-            Matchday Dashboard
+    <div className="space-y-10 pb-20">
+      {/* Header section */}
+      <div className="page-header">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
+            <Zap className="w-4 h-4 fill-primary" />
+            Relaxena Live
+          </div>
+          <h1 className="text-4xl font-black text-white tracking-tighter sm:text-5xl">
+            Arena Dashboard
           </h1>
-          <p className="text-muted-foreground mt-1">Real-time venue intelligence & insights</p>
+          <p className="text-muted-foreground font-medium">Welcome back! Here's what's happening now.</p>
         </div>
         <CrowdStatusBar />
       </div>
 
-      {/* Main Grid Layout */}
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Left Column: Event & Map (7 cols) */}
-        <div className="lg:col-span-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-8">
-              <EventInfoCard />
-              <AITipCard />
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white uppercase tracking-widest">Venue Overview</h3>
-                <span className="text-[10px] text-primary font-bold cursor-pointer hover:underline">View Full Map</span>
+        {/* Left Column (8/12) */}
+        <div className="lg:col-span-8 space-y-10">
+          
+          <LiveScoreCard />
+
+          <div className="space-y-6">
+            <div className="flex items-center justify-between px-2">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" />
+                <h3 className="text-xs font-black text-white uppercase tracking-widest">Nearby Fast Lanes</h3>
               </div>
-              <VenueMapMini />
+              <Link href="/queue" className="text-[10px] font-black text-primary uppercase hover:underline">View All</Link>
             </div>
+            <NearbyWaitsStrip />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <LiveScoreCard />
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white uppercase tracking-widest">Nearby Wait Times</h3>
-                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">Live Updates</span>
+                <h3 className="text-xs font-black text-white uppercase tracking-widest">Venue Preview</h3>
+                <span className="text-[10px] text-muted-foreground font-bold uppercase">Dynamic Map</span>
               </div>
-              <NearbyWaitsList />
+              <VenueMapMini />
+              <Button className="w-full h-12 rounded-2xl bg-zinc-900 border border-white/5 hover:bg-zinc-800 text-white font-bold gap-2">
+                <Navigation className="w-4 h-4" /> Open Full Interactive Map
+              </Button>
+            </div>
+            <div className="space-y-8">
+               <AITipCard />
+               <div className="glass-blue p-6 rounded-3xl border-primary/20 space-y-4">
+                 <h4 className="text-[10px] font-black text-primary uppercase tracking-widest">Your Nearest Exit</h4>
+                 <div className="flex items-center gap-4">
+                   <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary font-black">N4</div>
+                   <div>
+                     <p className="font-bold text-white">Gate N4 (North Exit)</p>
+                     <p className="text-xs text-muted-foreground">Approx. 2 min walk from your seat</p>
+                   </div>
+                 </div>
+               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Queue & Assistant (4 cols) */}
-        <div className="lg:col-span-4 space-y-8">
+        {/* Right Column (4/12) */}
+        <div className="lg:col-span-4 space-y-10">
+          <div className="space-y-6">
+            <h3 className="px-2 text-xs font-black text-white uppercase tracking-widest">Quick Actions</h3>
+            <QuickActions />
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="px-2 text-xs font-black text-white uppercase tracking-widest">Venue Vibe</h3>
+            <CrowdPulseWidget />
+          </div>
+
           <div className="space-y-4">
-            <h3 className="text-sm font-bold text-white uppercase tracking-widest">My Active Queues</h3>
+            <h3 className="px-2 text-xs font-black text-white uppercase tracking-widest">Active Queue</h3>
             <ActiveQueueCard />
-          </div>
-
-          <div className="bg-gradient-to-br from-zinc-900 to-black rounded-3xl border border-border p-6 shadow-2xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(236,72,153,0.05),transparent)] pointer-events-none" />
-            <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_#ec4899]" />
-              Smart Assistant
-            </h3>
-            <p className="text-xs text-muted-foreground mb-6 leading-relaxed">
-              Ask about navigation, food options, or incident reporting.
-            </p>
-            <div className="space-y-3">
-              {['Where is the nearest exit?', 'Show me coffee shops', 'Report a spill'].map((q) => (
-                <button 
-                  key={q}
-                  className="w-full text-left p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-white hover:bg-white/10 transition-all font-medium"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
-            <div className="mt-8 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-secondary/10 border border-secondary/20 flex items-center justify-center">
-                <Zap className="w-4 h-4 text-secondary" />
-              </div>
-              <p className="text-[10px] font-bold text-secondary uppercase tracking-widest">AI Ready to assist</p>
-            </div>
-          </div>
-
-          {/* Quick Stats Summary */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-2xl bg-surface border border-border">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Total Users</p>
-              <p className="text-xl font-black text-white">42.5k</p>
-            </div>
-            <div className="p-4 rounded-2xl bg-surface border border-border">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Avg Wait</p>
-              <p className="text-xl font-black text-white">12min</p>
-            </div>
           </div>
         </div>
 
@@ -116,4 +112,3 @@ export default function DashboardPage() {
   );
 }
 
-import { Zap } from "lucide-react";

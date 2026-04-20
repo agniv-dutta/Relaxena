@@ -7,42 +7,47 @@ import { Users } from "lucide-react";
 export function CrowdStatusBar() {
   const { zones } = useVenueStore();
   
-  // Showcase 3 main zones or fallback
-  const displayZones = zones.length > 0 
-    ? zones.slice(0, 3) 
-    : [
-        { id: '1', name: 'West Gate', density: 25 },
-        { id: '2', name: 'Main Concourse', density: 68 },
-        { id: '3', name: 'Food Court A', density: 84 },
-      ];
-
-  const getDensityColor = (density: number) => {
-    if (density < 40) return "bg-success/20 text-success border-success/30";
-    if (density < 71) return "bg-warning/20 text-warning border-warning/30";
-    return "bg-danger/20 text-danger border-danger/30";
-  };
+  const avgDensity = Math.round(zones.reduce((acc, z) => acc + (z.density || 0), 0) / (zones.length || 1));
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <div className="flex items-center gap-2 mr-2">
-        <div className="p-2 rounded-lg bg-zinc-900 border border-border">
-          <Users3 className="w-4 h-4 text-primary" />
+    <div className="flex flex-col sm:flex-row items-center gap-6 glass p-2 px-6 rounded-3xl border-white/5 animate-in fade-in slide-in-from-right-4 duration-1000">
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-12">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-primary" />
+            <span className="text-[10px] font-black text-white uppercase tracking-widest">Venue Density</span>
+          </div>
+          <span className={cn(
+            "text-[10px] font-black uppercase",
+            avgDensity < 40 ? "text-success" : avgDensity < 70 ? "text-warning" : "text-danger"
+          )}>
+            {avgDensity}% Capacity
+          </span>
         </div>
-        <span className="text-sm font-bold text-white whitespace-nowrap">Crowd Density:</span>
+        <div className="w-48 h-2 bg-zinc-900 rounded-full overflow-hidden border border-white/5">
+          <div 
+            className={cn(
+              "h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,0,0,0.5)]",
+              avgDensity < 40 ? "bg-success shadow-[0_0_8px_#22c55e]" : avgDensity < 70 ? "bg-warning shadow-[0_0_8px_#f59e0b]" : "bg-danger shadow-[0_0_8px_#ef4444]"
+            )}
+            style={{ width: `${avgDensity}%` }}
+          />
+        </div>
+        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">
+          23,450 / 60,000 attendees inside
+        </p>
       </div>
-      
-      {displayZones.map((zone) => (
-        <div 
-          key={zone.id}
-          className={cn(
-            "px-4 py-1.5 rounded-full border text-xs font-bold transition-all hover:scale-105",
-            getDensityColor(zone.density)
-          )}
-        >
-          <span className="mr-2 uppercase tracking-tight">{zone.name}</span>
-          <span>{zone.density}%</span>
+
+      <div className="hidden sm:block w-px h-10 bg-white/10" />
+
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_5px_#3b82f6]" />
+          <span className="text-[10px] font-black text-white uppercase tracking-widest">Dynamic Exit</span>
         </div>
-      ))}
+        <p className="text-xs font-bold text-white">Gate N4 <span className="text-muted-foreground font-medium ml-1">• 2 min walk</span></p>
+        <p className="text-[9px] font-bold text-success uppercase tracking-widest leading-none">Recommended Route Clear</p>
+      </div>
     </div>
   );
 }

@@ -5,66 +5,67 @@
   <img src="https://img.shields.io/badge/FastAPI-Async-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
   <img src="https://img.shields.io/badge/Frontend-Next.js%2016-000000?logo=nextdotjs&logoColor=white" alt="Next.js" />
   <img src="https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white" alt="SQLite" />
-  <img src="https://img.shields.io/badge/Cache%2FPubSub-Redis-DC382D?logo=redis&logoColor=white" alt="Redis" />
-  <img src="https://img.shields.io/badge/Workers-Celery-37814A?logo=celery&logoColor=white" alt="Celery" />
-  <img src="https://img.shields.io/badge/Container-Docker-2496ED?logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/AI-Groq%20LLM-007AFF?logo=openai&logoColor=white" alt="Groq LLM" />
 </p>
 
-Production-grade backend scaffold for a real-time physical event experience platform for large sporting venues.
+Production-ready real-time venue operations platform with crowd intelligence, queue orchestration, alerting, and AI assistant capabilities.
 
 ## Repository Structure
 
-- Root contains frontend-friendly workspace files and this README.
-- Backend code now lives under `backend/`.
+- Root contains this README, `frontend/`, and `backend/`.
+- Backend implementation is encapsulated under `backend/`.
 
 Run all backend setup and runtime commands from inside `backend/`.
 
 ## Stack
 
-- Python 3.11+
-- FastAPI (async)
-- SQLAlchemy 2.0 async ORM
-- SQLite (default, zero remote setup)
-- Redis (pub/sub + cache/event streaming)
-- Celery (background tasks)
-- WebSockets (live crowd updates)
-- Pydantic v2
-- Alembic migrations
-- Docker + docker-compose
+- **Python 3.11+**
+- **FastAPI** (async)
+- **SQLAlchemy 2.0** async ORM with SQLite (PostgreSQL ready)
+- **WebSockets** for real-time streams
+- **Pydantic v2** validation
+- **Alembic** migrations
+- **Groq LLM** for AI features (optional)
+- **httpx** for external API calls
 
-## Modules Included
+## Features
 
-1. Crowd movement engine
-- Real-time crowd snapshot ingestion
-- Heatmap API
-- Threshold-based crowd alerting
-- WebSocket: `/ws/crowd/{venue_id}`
+1. **Crowd Intelligence**
+   - Real-time crowd snapshot ingestion
+   - Density trend prediction with heuristics
+   - Threshold-based alerting
+   - WebSocket stream for venue crowd channels
 
-2. Smart queue management
-- Join/leave virtual queues
-- Position and ETA tracking
-- Rebalancing recommendation endpoint
+2. **Smart Queue Orchestration**
+   - Virtual queue join with live position tracking
+   - ETA generation and queue position updates
+   - Queue visibility via WebSocket channels
 
-3. Real-time coordination
-- Staff alerts via Redis pub/sub
-- Incident reporting and escalation
-- Admin dashboard summary stats
+3. **Incident & Alert Command Center
+- Incident creation with async AI summary/action plan
+- Alert publish endpoint with Redis + WebSocket fan-out
+- Severity categorization and escalation fields
 
-4. Attendee experience APIs
-- Navigation suggestion to seat
-- Low-wait concession recommendation
-- Event schedule + live score stubs
-- Notification preference management
+4. Venue operations intelligence
+- Venue layout endpoint with GeoJSON zones
+- Venue condition endpoint with weather signal enrichment
+- Live sports score polling and cache
 
-5. Auth and users
+5. Security and roles
 - OAuth2 password flow
 - JWT access tokens
 - Role-based access control (`attendee`, `staff`, `admin`)
+
+6. Real-time channels
+- `WS /ws/crowd/{venue_id}`
+- `WS /ws/queue/{user_id}`
+- `WS /ws/alerts/{venue_id}`
 
 ## Folder Layout
 
 ```
 app/
+  api/routers/
   core/
   db/
   models/
@@ -74,9 +75,19 @@ app/
   tasks/
 alembic/
 scripts/
+postman/
+nginx/
 ```
 
-## Quick Start (Local)
+## Architecture Flow
+
+1. Sensors and app clients send crowd/queue/incident events to FastAPI.
+2. FastAPI persists state in SQLite/MySQL and pushes messages to Redis.
+3. WebSocket manager broadcasts crowd, queue, and alert channels to clients.
+4. Celery worker/beat process predictive and optimization jobs.
+5. Nginx fronts the API in containerized deployments.
+
+## Quick Start (Local SQLite)
 
 1. Create env file:
 
@@ -93,19 +104,19 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-3. Run API:
+3. Run migrations:
+
+```bash
+alembic upgrade head
+```
+
+4. Start API:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-4. Run Celery worker (separate terminal):
-
-```bash
-celery -A app.core.celery_app.celery_app worker --loglevel=info
-```
-
-5. Seed demo data:
+5. Seed demo data (optional):
 
 ```bash
 python -m scripts.seed_demo
@@ -115,7 +126,7 @@ python -m scripts.seed_demo
 
 ```bash
 cd ..\frontend
-copy .env.example .env.local
+cp .env.example .env.local
 npm install
 npm run dev
 ```
@@ -129,23 +140,30 @@ Use these seeded credentials for demo/testing:
 - Email: admin@relaxena.com
 - Password: Admin@12345
 
-## Docker
+## Environment Configuration
+
+Copy `.env.example` to `.env` and customize:
 
 ```bash
-docker-compose up --build
+cp backend/.env.example backend/.env
 ```
 
-Services:
-- API: `http://localhost:8000`
-- Redis: `localhost:6379`
+Key settings:
+- `GROQ_API_KEY` — Get from https://console.groq.com (optional for AI features)
+- `OPENWEATHER_API_KEY` — Optional for weather enrichment
+- `SPORTSDATA_API_KEY` — Optional for live sports scores
+- `DATABASE_URL` — Leave blank for SQLite, or set to PostgreSQL for production
 
 ## Migrations
 
-Initial migration exists in `alembic/versions/20260414_0001_initial_schema.py`.
+Migrations include:
+- `20260414_0001_initial_schema.py`
+- `20260414_0002_arenaflow_expansion.py`
 
 Run migrations:
 
 ```bash
+cd backend
 alembic upgrade head
 ```
 
@@ -155,42 +173,43 @@ Create new migration:
 alembic revision --autogenerate -m "describe change"
 ```
 
-## Important Endpoints
+## Key API Endpoints
 
 ### Auth
-- `POST /auth/register`
-- `POST /auth/token`
-- `GET /auth/me`
+- `POST /auth/register` — Sign up
+- `POST /auth/token` — Log in
+- `GET /auth/me` — Current user
 
-### Crowd
-- `POST /crowd/snapshot`
-- `GET /crowd/heatmap/{venue_id}`
-- `WS /ws/crowd/{venue_id}`
+### Venue Data
+- `GET /api/venues/{venue_id}/layout` — Zone layout and capacity
+- `GET /api/venues/{venue_id}/conditions` — Weather and crowd score
 
-### Queue
-- `POST /queue/join`
-- `POST /queue/leave/{ticket_id}`
-- `GET /queue/status/{ticket_id}`
-- `GET /queue/rebalance/{venue_id}`
+### Crowd & Sensors
+- `POST /api/sensors/update` — Report crowd count changes
+- `GET /api/ai/predict?venue_id={id}` — Density predictions
 
-### Coordination
-- `POST /coordination/alerts`
-- `POST /coordination/incidents`
-- `GET /coordination/dashboard/{venue_id}`
+### Queues
+- `POST /api/queues/join` — Join virtual queue
+- `WS /ws/queue/{user_id}` — Queue position updates
 
-### Attendee
-- `GET /attendee/navigation/seat`
-- `GET /attendee/concession/recommendation/{venue_id}`
-- `GET /attendee/events/{venue_id}/schedule`
-- `GET /attendee/events/{event_id}/live-score`
+### Incidents & Alerts
+- `POST /api/incidents` — Report incident
+- `POST /api/alerts/publish` — Broadcast alert
+- `WS /ws/alerts/{venue_id}` — Alert stream
 
-### User Preferences
-- `GET /users/me`
-- `GET /users/me/notifications`
-- `PUT /users/me/notifications`
+### AI Assistant
+- `POST /api/ai/chat` — Server-sent events chat stream
+- `GET /api/ai/predict?venue_id={id}` — Crowd prediction
+
+### WebSocket Channels
+- `/ws/crowd/{venue_id}` — Real-time crowd updates
+- `/ws/queue/{user_id}` — Queue position notifications
+- `/ws/alerts/{venue_id}` — Safety and operational alerts
 
 ## Notes
 
-- SQLite is the default to avoid external DB setup.
-- If you prefer MySQL later, update `sqlalchemy_database_uri` logic in `app/core/config.py` and set env vars for your MySQL DSN.
-- For production, rotate `SECRET_KEY`, enforce TLS, and tune Celery/Redis settings.
+- SQLite is the default local database for development
+- PostgreSQL ready via `DATABASE_URL` environment variable
+- No external infrastructure required (no Redis, Docker, or Celery)
+- All external API calls (Groq, OpenWeather, etc.) are optional
+- For production: rotate secrets, enable HTTPS, customize CORS origins

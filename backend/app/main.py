@@ -3,9 +3,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.routers import alerts, ai, events, incidents, queues, sensors, venues, websocket as ws_v2
 from app.core.config import settings
 from app.db.session import init_db_if_enabled
-from app.routers import attendee, auth, coordination, crowd, queue, users, websocket
+from app.routers import attendee, auth, coordination, crowd, queue, users
 
 
 @asynccontextmanager
@@ -30,7 +31,16 @@ app.include_router(crowd.router, prefix="/crowd", tags=["crowd"])
 app.include_router(queue.router, prefix="/queue", tags=["queue"])
 app.include_router(coordination.router, prefix="/coordination", tags=["coordination"])
 app.include_router(attendee.router, prefix="/attendee", tags=["attendee"])
-app.include_router(websocket.router, tags=["websocket"])
+
+# API routes
+app.include_router(ai.router)
+app.include_router(venues.router)
+app.include_router(events.router)
+app.include_router(sensors.router)
+app.include_router(incidents.router)
+app.include_router(queues.router)
+app.include_router(alerts.router)
+app.include_router(ws_v2.router)
 
 
 @app.get("/health", summary="Health check")

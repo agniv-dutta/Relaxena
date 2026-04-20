@@ -3,7 +3,6 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.redis import get_redis
 from app.models.alert import Alert
 from app.models.crowd import CrowdSnapshot
 from app.models.incident import Incident
@@ -23,8 +22,6 @@ async def create_staff_alert(db: AsyncSession, payload: AlertCreate) -> Alert:
     await db.commit()
     await db.refresh(alert)
 
-    redis = await get_redis()
-    await redis.publish(f"staff_alerts:{payload.venue_id}", payload.model_dump_json())
     return alert
 
 

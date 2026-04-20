@@ -1,0 +1,168 @@
+{
+  "info": {
+    "name": "Relaxena API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Relaxena venue operations backend"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost" },
+    { "key": "apiPort", "value": "8000" },
+    { "key": "token", "value": "" },
+    { "key": "venueId", "value": "1" },
+    { "key": "eventId", "value": "1" },
+    { "key": "userId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo.user@example.com\",\n  \"full_name\": \"Demo User\",\n  \"password\": \"Demo@12345\"\n}"
+            },
+            "url": "{{baseUrl}}:{{apiPort}}/auth/register"
+          }
+        },
+        {
+          "name": "POST /auth/token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "admin@relaxena.com", "type": "text" },
+                { "key": "password", "value": "Admin@12345", "type": "text" }
+              ]
+            },
+            "url": "{{baseUrl}}:{{apiPort}}/auth/token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Venue & Operations",
+      "item": [
+        {
+          "name": "GET /api/venues/{venue_id}/layout",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}:{{apiPort}}/api/venues/{{venueId}}/layout"
+          }
+        },
+        {
+          "name": "GET /api/venues/{venue_id}/conditions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}:{{apiPort}}/api/venues/{{venueId}}/conditions"
+          }
+        },
+        {
+          "name": "GET /api/events/{event_id}/live-score",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}:{{apiPort}}/api/events/{{eventId}}/live-score"
+          }
+        },
+        {
+          "name": "POST /api/sensors/update",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"zone_id\": 1,\n  \"count_delta\": 20\n}"
+            },
+            "url": "{{baseUrl}}:{{apiPort}}/api/sensors/update"
+          }
+        },
+        {
+          "name": "POST /api/queues/join",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"venue_id\": 1,\n  \"location_id\": \"North Gate\",\n  \"queue_type\": \"entry_gate\"\n}"
+            },
+            "url": "{{baseUrl}}:{{apiPort}}/api/queues/join"
+          }
+        },
+        {
+          "name": "POST /api/incidents",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"venue_id\": 1,\n  \"zone_id\": 1,\n  \"title\": \"Overcrowding near food court\",\n  \"description\": \"Rapid congestion in the west concourse near stand C12.\",\n  \"severity\": \"high\"\n}"
+            },
+            "url": "{{baseUrl}}:{{apiPort}}/api/incidents"
+          }
+        },
+        {
+          "name": "POST /api/alerts/publish",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"venue_id\": 1,\n  \"zone_id\": 1,\n  \"alert_type\": \"SAFETY\",\n  \"title\": \"Temporary Route Change\",\n  \"message\": \"Use east corridor due to congestion in west concourse.\",\n  \"severity\": \"HIGH\"\n}"
+            },
+            "url": "{{baseUrl}}:{{apiPort}}/api/alerts/publish"
+          }
+        },
+        {
+          "name": "POST /api/ai/chat (SSE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"How should I reach my gate fastest?\",\n  \"venue_id\": 1,\n  \"user_id\": {{userId}}\n}"
+            },
+            "url": "{{baseUrl}}:{{apiPort}}/api/ai/chat"
+          }
+        },
+        {
+          "name": "GET /api/ai/predict",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}:{{apiPort}}/api/ai/predict?venue_id={{venueId}}&refresh=true"
+          }
+        }
+      ]
+    }
+  ]
+}

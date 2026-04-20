@@ -4,7 +4,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.redis import get_redis
 from app.core.websocket_manager import ws_manager
 from app.models.alert import Alert
 from app.models.crowd import CrowdSnapshot
@@ -20,12 +19,6 @@ async def create_crowd_snapshot(db: AsyncSession, payload: CrowdSnapshotCreate) 
     db.add(snapshot)
     await db.flush()
 
-    redis = None
-    try:
-        redis = await get_redis()
-    except Exception:
-        redis = None
-
     update = {
         "type": "crowd_snapshot",
         "venue_id": snapshot.venue_id,
@@ -33,8 +26,6 @@ async def create_crowd_snapshot(db: AsyncSession, payload: CrowdSnapshotCreate) 
         "density_score": snapshot.density_score,
         "timestamp": snapshot.captured_at.isoformat() if snapshot.captured_at else None,
     }
-    if redis is not None:
-        await redis.publish(f"crowd:{snapshot.venue_id}", json.dumps(update))
     await ws_manager.broadcast(snapshot.venue_id, update)
 
     if snapshot.density_score >= settings.crowd_alert_density_threshold:
@@ -49,14 +40,6 @@ async def create_crowd_snapshot(db: AsyncSession, payload: CrowdSnapshotCreate) 
             ),
         )
         db.add(alert)
-        alert_payload = CrowdAlert(
-            venue_id=snapshot.venue_id,
-            zone_id=snapshot.zone_id,
-            severity="high",
-            message=alert.message,
-        )
-        if redis is not None:
-            await redis.publish(f"staff_alerts:{snapshot.venue_id}", alert_payload.model_dump_json())
 
     await db.commit()
     await db.refresh(snapshot)

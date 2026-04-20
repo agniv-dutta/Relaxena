@@ -55,7 +55,7 @@ export default function ProfilePage() {
           <Card className="bg-white text-black rounded-[2.5rem] overflow-hidden border-none shadow-2xl relative">
             <div className="absolute top-0 left-0 w-full h-40 bg-zinc-900 flex items-center justify-center">
                <div className="text-center">
-                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-1">ArenaFlow Entry</p>
+                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-1">Relaxena Entry</p>
                  <h4 className="text-2xl font-black text-white tracking-tighter">Relaxena FC vs. United</h4>
                </div>
             </div>

@@ -7,7 +7,7 @@ import { Shell } from "@/components/layout/Shell";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ArenaFlow | Smart Venue Management",
+  title: "Relaxena | Smart Venue Management",
   description: "Production-grade real-time crowd management and queue optimization",
 };
 

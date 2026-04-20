@@ -137,7 +137,7 @@ export default function SettingsPage() {
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2 text-muted-foreground">
             <CircleHelp className="w-4 h-4" />
-            <span className="text-xs font-medium">ArenaFlow App v2.4.0 (Build 982)</span>
+            <span className="text-xs font-medium">Relaxena App v2.4.0 (Build 982)</span>
           </div>
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <Button variant="ghost" className="flex-1 sm:flex-none rounded-xl text-muted-foreground hover:text-white font-bold text-xs">Privacy Policy</Button>

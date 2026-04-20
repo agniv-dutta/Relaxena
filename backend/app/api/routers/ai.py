@@ -27,7 +27,7 @@ router = APIRouter(prefix="/api/ai", tags=["ai"])
 class AIChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=1000)
     venue_id: int
-    user_id: int
+    user_id: int | None = None
 
 
 class AIRouteRequest(BaseModel):
@@ -47,7 +47,7 @@ class AIIncidentRequest(BaseModel):
 async def ai_chat(
     payload: AIChatRequest,
     db: AsyncSession = Depends(get_db_session),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Stream AI chat response with enriched venue context.
@@ -92,7 +92,7 @@ async def ai_chat(
         async for chunk in stream_assistant_reply(
             message=payload.message,
             venue_id=payload.venue_id,
-            user_id=payload.user_id,
+            user_id=payload.user_id or current_user.id,
             venue_context=venue_context,
         ):
             yield chunk

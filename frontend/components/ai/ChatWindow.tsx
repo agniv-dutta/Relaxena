@@ -42,7 +42,7 @@ export function ChatWindow() {
             <Zap className="w-6 h-6 text-white" fill="white" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white tracking-tight">ArenaFlow AI</h3>
+            <h3 className="text-sm font-bold text-white tracking-tight">Relaxena AI</h3>
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active • Streaming enabled</span>
@@ -149,7 +149,7 @@ export function ChatWindow() {
           </div>
         </div>
         <p className="text-[10px] text-muted-foreground text-center mt-4 uppercase tracking-[0.1em] font-medium">
-          ArenaFlow AI can clarify venue rules and provide live navigation support.
+          Relaxena AI can clarify venue rules and provide live navigation support.
         </p>
       </div>
     </div>

@@ -4,14 +4,14 @@ import { useState } from "react";
 import { AlertsHero } from "@/components/alerts/AlertsHero";
 import { LiveIncidentTicker } from "@/components/alerts/LiveIncidentTicker";
 import { AlertStatsRow } from "@/components/alerts/AlertStatsRow";
-import { AlertFilterBar, AlertList } from "@/components/alerts/AlertList";
+import { AlertFilterBar, FilteredAlertList } from "@/components/alerts/AlertList";
 import { useAlertStore } from "@/stores/alertStore";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ShieldAlert, Sparkles } from "lucide-react";
 
 export default function AlertsPage() {
   const { alerts, markRead } = useAlertStore();
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('all::');
 
   const handleClearAll = () => {
     alerts.forEach(a => !a.is_read && markRead(a.id));
@@ -47,7 +47,7 @@ export default function AlertsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 space-y-8">
           <AlertFilterBar onFilterChange={setFilter} />
-          <AlertList />
+          <FilteredAlertList filter={filter} />
         </div>
 
         <div className="lg:col-span-4 space-y-8">

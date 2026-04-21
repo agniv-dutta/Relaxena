@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import { useState } from "react";
+import { PWARegistrar } from "@/components/system/PWARegistrar";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -14,6 +15,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+        <PWARegistrar />
         <AuthProvider>
           <TooltipProvider>
             {children}

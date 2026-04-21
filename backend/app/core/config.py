@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["http://localhost:3000"])
 
     groq_api_key: str | None = None
-    groq_model: str = "llama3-70b-8192"
-    groq_fallback_model: str = "mixtral-8x7b-32768"
+    groq_model: str = "llama-3.3-70b-versatile"
+    groq_fallback_model: str = "llama-3.1-8b-instant"
 
     openweather_api_key: str | None = None
     sportsdata_api_key: str | None = None

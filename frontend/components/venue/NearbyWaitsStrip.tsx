@@ -26,14 +26,24 @@ export function NearbyWaitsStrip({ waits = mockWaits }: NearbyWaitsStripProps) {
     }
   };
 
+  const fastest = waits.reduce((a, b) => (a.minutes <= b.minutes ? a : b), waits[0]);
+
   return (
     <div className="flex items-center gap-4 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-      {waits.map((loc) => (
+      {waits.map((loc, idx) => (
         <Link 
           key={loc.location_id}
           href={`/queue?category=${loc.category}`}
-          className="flex-shrink-0 w-40 p-4 rounded-3xl bg-zinc-900 border border-white/5 hover:border-white/10 transition-all group"
+          className="snap-start flex-shrink-0 w-44 p-4 rounded-3xl border border-white/10 hover:border-white/20 transition-all group glass"
         >
+          <div className="flex items-center gap-2 mb-2">
+            {loc.location_id === fastest.location_id && (
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 font-black uppercase tracking-wider">Fastest</span>
+            )}
+            {idx === 1 && (
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-fuchsia-500/20 text-fuchsia-200 font-black uppercase tracking-wider">Trending</span>
+            )}
+          </div>
           <div className="flex items-center justify-between mb-3">
             <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
               {getIcon(loc.category)}
@@ -45,6 +55,17 @@ export function NearbyWaitsStrip({ waits = mockWaits }: NearbyWaitsStripProps) {
               "text-danger border-danger/30 bg-danger/10"
             )}>
               {loc.minutes} Min
+            </div>
+          </div>
+          <div className="mb-2">
+            <div className="h-1.5 rounded-full bg-black/30 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full",
+                  loc.minutes < 6 ? "bg-emerald-400" : loc.minutes < 15 ? "bg-amber-400" : "bg-rose-400"
+                )}
+                style={{ width: `${Math.min(100, loc.minutes * 6)}%` }}
+              />
             </div>
           </div>
           <h4 className="text-xs font-bold text-white mb-1 truncate">{loc.name}</h4>

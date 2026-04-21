@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 export function AlertFilterBar({ onFilterChange }: { onFilterChange: (category: string) => void }) {
   const [activeTab, setActiveTab] = useState('all');
+  const [query, setQuery] = useState('');
 
   const tabs = [
     { id: 'all', label: 'All Alerts' },
@@ -23,7 +24,10 @@ export function AlertFilterBar({ onFilterChange }: { onFilterChange: (category: 
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => { setActiveTab(tab.id); onFilterChange(tab.id); }}
+            onClick={() => {
+              setActiveTab(tab.id);
+              onFilterChange(`${tab.id}::${query}`);
+            }}
             className={cn(
               "px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
               activeTab === tab.id ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-muted-foreground hover:text-white"
@@ -40,6 +44,12 @@ export function AlertFilterBar({ onFilterChange }: { onFilterChange: (category: 
           <input 
             type="text" 
             placeholder="Search alerts..."
+            value={query}
+            onChange={(e) => {
+              const value = e.target.value;
+              setQuery(value);
+              onFilterChange(`${activeTab}::${value}`);
+            }}
             className="bg-surface border border-border rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary/50 transition-all w-64"
           />
         </div>
@@ -52,18 +62,29 @@ export function AlertFilterBar({ onFilterChange }: { onFilterChange: (category: 
 }
 
 export function AlertList() {
+  return <FilteredAlertList filter="all::" />;
+}
+
+export function FilteredAlertList({ filter }: { filter: string }) {
   const { alerts, markRead } = useAlertStore();
+  const [category, query] = filter.split('::');
+
+  const list = alerts.filter((alert) => {
+    const categoryOk = category === 'all' || alert.type === category;
+    const queryOk = !query || `${alert.title} ${alert.message}`.toLowerCase().includes(query.toLowerCase());
+    return categoryOk && queryOk;
+  });
 
   return (
     <div className="space-y-4">
-      {alerts.length === 0 ? (
+      {list.length === 0 ? (
         <div className="p-12 text-center rounded-[2rem] bg-surface/30 border border-dashed border-border opacity-50 flex flex-col items-center">
           <CheckCircle2 className="w-12 h-12 text-success mb-4" />
           <p className="text-sm font-bold text-white">All Clear</p>
           <p className="text-xs text-muted-foreground mt-1">There are no notifications at the moment.</p>
         </div>
       ) : (
-        alerts.map((alert) => (
+        list.map((alert) => (
           <AlertCard key={alert.id} alert={alert} onMarkRead={markRead} />
         ))
       )}

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClientProviders } from "@/components/providers/ClientProviders";
 import { Shell } from "@/components/layout/Shell";
+import { AmbientBackground } from "@/components/layout/AmbientBackground";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,6 +21,7 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${inter.className} bg-background text-foreground antialiased overflow-x-hidden`}>
         <ClientProviders>
+          <AmbientBackground />
           <Shell>
             {children}
           </Shell>

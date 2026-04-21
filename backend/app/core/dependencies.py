@@ -8,6 +8,7 @@ from app.db.session import get_db_session
 from app.models.user import User, UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
 
 async def get_current_user(
@@ -23,6 +24,21 @@ async def get_current_user(
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
+
+
+async def get_current_user_optional(
+    token: str | None = Depends(oauth2_scheme_optional),
+    db: AsyncSession = Depends(get_db_session),
+) -> User | None:
+    if not token:
+        return None
+
+    payload = decode_access_token(token)
+    if payload is None or "sub" not in payload:
+        return None
+
+    result = await db.execute(select(User).where(User.email == payload["sub"]))
+    return result.scalar_one_or_none()
 
 
 def require_roles(*allowed_roles: UserRole):

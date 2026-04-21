@@ -10,7 +10,7 @@ export const useLiveScore = (eventId: string) => {
   const { data, isLoading } = useQuery({
     queryKey: ['live-score', eventId],
     queryFn: async () => {
-      const { data } = await api.get<LiveScore>(`/events/${eventId}/live-score`);
+      const { data } = await api.get<LiveScore>(`/api/events/${eventId}/live-score`);
       return data;
     },
     refetchInterval: 30000, // Poll every 30 seconds

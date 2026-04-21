@@ -1,40 +1,69 @@
 "use client";
 
-const mockPerformance = [
-  { name: 'Cloud Coffee', throughput: '120/hr', avgWait: '5m', satisfaction: '94%', load: 'optimum' },
-  { name: 'Pizza Hub Sector A', throughput: '85/hr', avgWait: '18m', satisfaction: '78%', load: 'high' },
-  { name: 'Draft Bar West', throughput: '210/hr', avgWait: '12m', satisfaction: '88%', load: 'optimum' },
-  { name: 'Burger Point', throughput: '95/hr', avgWait: '8m', satisfaction: '91%', load: 'optimum' },
-  { name: 'Main Gate South', throughput: '1500/hr', avgWait: '25m', satisfaction: '65%', load: 'critical' },
+import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
+
+type Row = {
+  location: string;
+  avgWait: number;
+  peakWait: number;
+  throughput: number;
+  trend: 'up' | 'down' | 'flat';
+  status: 'OPTIMAL' | 'BUSY' | 'OVERLOADED';
+};
+
+const rows: Row[] = [
+  { location: 'Cloud Coffee', avgWait: 5, peakWait: 13, throughput: 120, trend: 'down', status: 'OPTIMAL' },
+  { location: 'Pizza Hub Sector A', avgWait: 18, peakWait: 30, throughput: 85, trend: 'up', status: 'BUSY' },
+  { location: 'Draft Bar West', avgWait: 12, peakWait: 22, throughput: 210, trend: 'flat', status: 'BUSY' },
+  { location: 'Main Gate South', avgWait: 25, peakWait: 38, throughput: 1500, trend: 'up', status: 'OVERLOADED' },
 ];
 
 export function QueuePerformanceTable() {
+  const [sort, setSort] = useState<keyof Row>('avgWait');
+  const [asc, setAsc] = useState(true);
+
+  const sorted = useMemo(() => {
+    const arr = [...rows].sort((a, b) => {
+      const va = a[sort];
+      const vb = b[sort];
+      if (typeof va === 'number' && typeof vb === 'number') return asc ? va - vb : vb - va;
+      return asc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+    });
+    return arr;
+  }, [sort, asc]);
+
+  const setSortCol = (col: keyof Row) => {
+    if (sort === col) setAsc((v) => !v);
+    else {
+      setSort(col);
+      setAsc(true);
+    }
+  };
+
   return (
-    <div className="w-full overflow-x-auto">
-      <table className="w-full text-left">
+    <div className="w-full overflow-auto">
+      <table className="w-full text-left text-xs">
         <thead>
-          <tr className="border-b border-border">
-            <th className="pb-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-2">Location</th>
-            <th className="pb-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Throughput</th>
-            <th className="pb-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Avg Wait</th>
-            <th className="pb-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Sat.</th>
-            <th className="pb-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Load Status</th>
+          <tr className="border-b border-white/10">
+            {['location', 'avgWait', 'peakWait', 'throughput', 'trend', 'status'].map((h) => (
+              <th key={h} className="py-3 uppercase tracking-widest text-[10px] text-muted-foreground cursor-pointer" onClick={() => setSortCol(h as keyof Row)}>
+                {h === 'avgWait' ? 'Avg Wait' : h === 'peakWait' ? 'Peak Wait' : h}
+              </th>
+            ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-border/30">
-          {mockPerformance.map((row) => (
-            <tr key={row.name} className="group hover:bg-white/5 transition-colors">
-              <td className="py-4 pl-2 font-bold text-sm text-white">{row.name}</td>
-              <td className="py-4 text-sm text-muted-foreground font-mono">{row.throughput}</td>
-              <td className="py-4 text-sm text-white font-bold">{row.avgWait}</td>
-              <td className="py-4 text-sm text-primary font-black uppercase">{row.satisfaction}</td>
-              <td className="py-4">
-                <span className={cn(
-                  "px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest",
-                  row.load === 'optimum' ? "bg-success/10 text-success" : 
-                  row.load === 'high' ? "bg-warning/10 text-warning" : "bg-danger/10 text-danger"
-                )}>
-                  {row.load}
+        <tbody>
+          {sorted.map((row) => (
+            <tr key={row.location} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+              <td className="py-3 font-semibold">{row.location}</td>
+              <td>{row.avgWait}m</td>
+              <td>{row.peakWait}m</td>
+              <td>{row.throughput}/hr</td>
+              <td>{row.trend === 'up' ? 'Rising' : row.trend === 'down' ? 'Falling' : 'Stable'}</td>
+              <td>
+                <span className={cn('px-2 py-0.5 rounded text-[10px] font-black', row.status === 'OPTIMAL' ? 'bg-emerald-500/20 text-emerald-200' : row.status === 'BUSY' ? 'bg-amber-500/20 text-amber-200' : 'bg-rose-500/20 text-rose-200')}>
+                  {row.status}
                 </span>
               </td>
             </tr>
@@ -44,5 +73,3 @@ export function QueuePerformanceTable() {
     </div>
   );
 }
-
-import { cn } from "@/lib/utils";

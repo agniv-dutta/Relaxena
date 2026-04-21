@@ -13,6 +13,8 @@ import { useVenueStore } from "@/stores/venueStore";
 import { QuickActions } from "@/components/venue/QuickActions";
 import { NearbyWaitsStrip } from "@/components/venue/NearbyWaitsStrip";
 import { CrowdPulseWidget } from "@/components/venue/CrowdPulseWidget";
+import { RexiTipCardPro } from "@/components/venue/RexiTipCardPro";
+import { PersonalMatchTimeline } from "@/components/venue/PersonalMatchTimeline";
 import { Zap, MapPin, Navigation } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -35,7 +37,7 @@ export default function DashboardPage() {
             <Zap className="w-4 h-4 fill-primary" />
             Relaxena Live
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tighter sm:text-5xl">
+          <h1 className="text-4xl font-black tracking-tighter sm:text-5xl heading-gradient">
             Arena Dashboard
           </h1>
           <p className="text-muted-foreground font-medium">Welcome back! Here's what's happening now.</p>
@@ -50,6 +52,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-8 space-y-10">
           
           <LiveScoreCard />
+          <RexiTipCardPro />
 
           <div className="space-y-6">
             <div className="flex items-center justify-between px-2">
@@ -108,6 +111,7 @@ export default function DashboardPage() {
         </div>
 
       </div>
+      <PersonalMatchTimeline />
     </div>
   );
 }

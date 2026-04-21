@@ -9,8 +9,8 @@ export function AlertStatsRow() {
   
   const stats = [
     { label: "Total Alerts", value: alerts.length, icon: Bell, border: "border-white/5", color: "text-white" },
-    { label: "Critical", value: alerts.filter(a => a.severity === 'high').length, icon: AlertTriangle, border: "border-danger/20", color: "text-danger" },
-    { label: "Updates", value: alerts.filter(a => a.severity === 'medium').length, icon: Info, border: "border-warning/20", color: "text-warning" },
+    { label: "Critical", value: alerts.filter(a => a.severity === 'critical').length, icon: AlertTriangle, border: "border-danger/20", color: "text-danger" },
+    { label: "Updates", value: alerts.filter(a => a.severity === 'medium' || a.severity === 'low').length, icon: Info, border: "border-warning/20", color: "text-warning" },
     { label: "Security", value: "Active", icon: ShieldCheck, border: "border-success/20", color: "text-success" },
   ];
 

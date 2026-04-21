@@ -16,7 +16,7 @@ const quickChips = [
 
 export function AIContextPanel() {
   const { zones } = useVenueStore();
-  const { score } = useLiveScore("evt_001");
+  const { score } = useLiveScore("1");
 
   return (
     <div className="space-y-6 h-full overflow-y-auto no-scrollbar pr-2">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { KPICard } from "@/components/analytics/KPICard";
 import { CrowdDensityChart } from "@/components/analytics/CrowdDensityChart";
 import { ZoneHeatmapGrid } from "@/components/analytics/ZoneHeatmapGrid";
@@ -12,11 +13,53 @@ import {
   ShieldAlert,
   Download,
   Calendar,
-  Filter
+  Filter,
+  Share2,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import api from "@/lib/api";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function AnalyticsPage() {
+  const [reportOpen, setReportOpen] = useState(false);
+  const [report, setReport] = useState("# Event Summary\n\nNo report generated yet.");
+  const [generating, setGenerating] = useState(false);
+
+  const exportReport = async () => {
+    setGenerating(true);
+    try {
+      const { data } = await api.post("/api/ai/event-summary", {
+        venue_id: "1",
+        event_id: "1",
+      });
+      setReport(data?.summary_markdown || data?.summary || "# Event Summary\n\nNo summary returned.");
+    } catch {
+      setReport("# Event Summary\n\nUnable to generate a fresh report right now. Please try again.");
+    } finally {
+      setGenerating(false);
+      setReportOpen(true);
+    }
+  };
+
+  const downloadMarkdown = () => {
+    const blob = new Blob([report], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "relaxena-event-summary.md";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const shareReport = async () => {
+    if (navigator.share) {
+      await navigator.share({ title: "Relaxena Event Summary", text: report });
+      return;
+    }
+    await navigator.clipboard.writeText(report);
+  };
+
   return (
     <div className="space-y-10 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* Analytics Header */}
@@ -35,8 +78,8 @@ export default function AnalyticsPage() {
           <Button variant="outline" className="rounded-xl border-border bg-surface text-xs font-bold uppercase tracking-wider">
             <Calendar className="w-4 h-4 mr-2" /> Last 3 Hours
           </Button>
-          <Button className="rounded-xl bg-white text-black hover:bg-white/90 text-xs font-bold uppercase tracking-wider">
-            <Download className="w-4 h-4 mr-2" /> Export Report
+          <Button onClick={exportReport} className="rounded-xl bg-white text-black hover:bg-white/90 text-xs font-bold uppercase tracking-wider" disabled={generating}>
+            {generating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />} Export Report
           </Button>
         </div>
       </div>
@@ -123,6 +166,25 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </div>
+
+      <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+        <DialogContent className="max-w-3xl bg-zinc-950 border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black tracking-tight">AI Event Report</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[55vh] overflow-auto rounded-xl border border-white/10 bg-black/30 p-4">
+            <pre className="whitespace-pre-wrap text-xs text-white/85 leading-relaxed">{report}</pre>
+          </div>
+          <div className="flex items-center justify-end gap-3">
+            <Button variant="outline" className="rounded-xl" onClick={downloadMarkdown}>
+              <Download className="w-4 h-4 mr-2" /> Download
+            </Button>
+            <Button className="rounded-xl" onClick={shareReport}>
+              <Share2 className="w-4 h-4 mr-2" /> Share
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -4,9 +4,21 @@ import { useLiveScore } from "@/hooks/useLiveScore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Activity, History } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useEffect, useRef, useState } from "react";
 
 export function LiveScoreCard() {
-  const { score, isLoading } = useLiveScore("evt_001");
+  const { score, isLoading } = useLiveScore("1");
+  const prevRef = useRef<{ home: number; away: number } | null>(null);
+  const [goalFlash, setGoalFlash] = useState(false);
+
+  useEffect(() => {
+    if (!score) return;
+    if (prevRef.current && (score.home_score > prevRef.current.home || score.away_score > prevRef.current.away)) {
+      setGoalFlash(true);
+      setTimeout(() => setGoalFlash(false), 500);
+    }
+    prevRef.current = { home: score.home_score, away: score.away_score };
+  }, [score?.home_score, score?.away_score]);
 
   // Fallback mock if loading or no data
   const data = score || {
@@ -21,8 +33,9 @@ export function LiveScoreCard() {
   };
 
   return (
-    <Card className="bg-zinc-950 border-border overflow-hidden relative group">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.1),transparent)]" />
+    <Card className={cn("overflow-hidden relative group scanlines glass", goalFlash && "ring-2 ring-amber-300/80") }>
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1489945052260-4f21c52268b9?q=80&w=1400&auto=format&fit=crop')] bg-cover bg-center opacity-20" />
+      <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/40 to-black/70" />
       
       <CardContent className="p-0 relative">
         <div className="bg-surface/80 backdrop-blur-sm px-6 py-3 border-b border-border flex items-center justify-between">
@@ -70,9 +83,10 @@ export function LiveScoreCard() {
           <div className="mt-8 relative h-1 bg-zinc-900 rounded-full">
             <div className="absolute top-0 left-0 h-full bg-primary rounded-full shadow-[0_0_8px_#3b82f6]" style={{ width: '67%' }} />
             {/* Goal Markers */}
-            {[23, 41, 67].map(min => (
+            {[23, 41, 67].map((min, idx) => (
               <div 
                 key={min} 
+                title={`Goal ${idx + 1}: Scorer #${idx + 9}, Assist #${idx + 14}`}
                 className="absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white border-2 border-primary shadow-[0_0_10px_#fff]"
                 style={{ left: `${(min / 90) * 100}%` }}
               >
